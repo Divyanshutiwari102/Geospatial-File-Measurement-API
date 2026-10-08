@@ -2,16 +2,17 @@
 Unit tests for the measurement service.
 """
 
+import geopandas as gpd
 import pytest
 from shapely.geometry import (
-    Polygon,
-    LineString,
-    Point,
-    MultiPolygon,
-    MultiLineString,
     GeometryCollection,
+    LineString,
+    MultiLineString,
+    MultiPolygon,
+    Point,
+    Polygon,
 )
-import geopandas as gpd
+
 from app.services.measurement import calculate_measurements
 
 

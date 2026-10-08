@@ -1,0 +1,9 @@
+line-length = 100
+indent-width = 4
+
+[lint]
+ignore = [
+    "B008",
+    "BLE001",
+    "S110",
+]

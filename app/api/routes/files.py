@@ -6,15 +6,15 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.services.file_service import process_uploaded_file, save_upload_file
-from app.models.uploaded_file import ProcessingStatus, UploadedFile
 from app.models.feature import Feature
+from app.models.uploaded_file import ProcessingStatus, UploadedFile
 from app.schemas.file import FileInfo, FileUploadResponse
 from app.schemas.measurement import (
     FeatureMeasurement,
     MeasurementResponse,
     MeasurementSummary,
 )
+from app.services.file_service import process_uploaded_file, save_upload_file
 
 router = APIRouter()
 
@@ -59,7 +59,7 @@ async def upload_file(
     # Save the uploaded file
     try:
         saved_path, file_id = save_upload_file(file)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to save uploaded file: {e!s}",
@@ -75,7 +75,7 @@ async def upload_file(
         )
     except HTTPException:
         raise
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         # Clean up the saved file if processing fails?
         # We'll leave it for now, but in production we might want to clean up.
         raise HTTPException(
@@ -148,19 +148,38 @@ def get_file_measurements(
     all_features_query = db.query(Feature).filter(Feature.uploaded_file_id == file_id)
     total = all_features_query.count()
 
-    # Compute totals from all features
-    total_area = 0.0
-    total_length = 0.0
-    geometry_type_counts = {}
-    all_features = all_features_query.all()
-    for feat in all_features:
-        if feat.measurement_supported:
-            if feat.measurement_type == "area":
-                total_area += feat.measurement_value
-            elif feat.measurement_type == "length":
-                total_length += feat.measurement_value
-        geom_type = feat.geometry_type
-        geometry_type_counts[geom_type] = geometry_type_counts.get(geom_type, 0) + 1
+    # Compute totals from all features using SQL
+    from sqlalchemy import func
+
+    total_area = (
+        db.query(func.sum(Feature.measurement_value))
+        .filter(
+            Feature.uploaded_file_id == file_id,
+            Feature.measurement_type == "area",
+            Feature.measurement_supported == True,
+        )
+        .scalar()
+        or 0.0
+    )
+
+    total_length = (
+        db.query(func.sum(Feature.measurement_value))
+        .filter(
+            Feature.uploaded_file_id == file_id,
+            Feature.measurement_type == "length",
+            Feature.measurement_supported == True,
+        )
+        .scalar()
+        or 0.0
+    )
+
+    # Compute geometry type counts
+    geometry_type_counts = dict(
+        db.query(Feature.geometry_type, func.count(Feature.geometry_type))
+        .filter(Feature.uploaded_file_id == file_id)
+        .group_by(Feature.geometry_type)
+        .all()
+    )
 
     # Query features with pagination
     features_query = (

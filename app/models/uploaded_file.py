@@ -1,13 +1,15 @@
+import enum
+
 from sqlalchemy import Column, DateTime, Enum, Integer, String, Text, func
 from sqlalchemy.orm import relationship
+
 from app.db.session import Base
-import enum
 
 
 class ProcessingStatus(str, enum.Enum):
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
 
 
 class UploadedFile(Base):

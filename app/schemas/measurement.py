@@ -1,16 +1,14 @@
+
 from pydantic import BaseModel, Field
-from typing import Optional, List
-import json
-from app.models.feature import Feature
 
 
 class MeasurementBlock(BaseModel):
     supported: bool
-    type: Optional[str] = None  # "area" or "length"
-    value: Optional[float] = None
-    unit: Optional[str] = None
-    projected_crs: Optional[str] = None
-    reason: Optional[str] = None  # explanation when not supported
+    type: str | None = None  # "area" or "length"
+    value: float | None = None
+    unit: str | None = None
+    projected_crs: str | None = None
+    reason: str | None = None  # explanation when not supported
 
     class Config:
         # Allow population by field name or alias
@@ -37,7 +35,7 @@ class MeasurementSummary(BaseModel):
 
 
 class MeasurementResponse(BaseModel):
-    features: List[FeatureMeasurement]
+    features: list[FeatureMeasurement]
     summary: MeasurementSummary
     limit: int
     offset: int

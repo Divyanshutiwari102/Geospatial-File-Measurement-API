@@ -2,13 +2,13 @@
 Service for calculating measurements (area and length) from geometries.
 """
 
-import numpy as np
-from typing import Any, Dict, List
-import pyproj
+from typing import Any
+
 import geopandas as gpd
-from shapely.geometry import Polygon, LineString, Point
-from shapely.validation import make_valid
+import pyproj
 from shapely import transform
+from shapely.geometry import Point
+from shapely.validation import make_valid
 
 
 def calculate_measurements(
@@ -113,7 +113,7 @@ def calculate_measurements(
                 result["unit"] = "square_meters"
                 # Also compute hectares and sq km for convenience (though we return only one unit per requirement)
                 # We'll stick to square_meters as per requirement, but note that we can add more later.
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 result["supported"] = False
                 result["reason"] = f"Area calculation failed: {e!s}"
         elif geom.geom_type in ("LineString", "MultiLineString"):
@@ -125,7 +125,7 @@ def calculate_measurements(
                 result["measurement_type"] = "length"
                 result["value"] = length
                 result["unit"] = "meters"
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 result["supported"] = False
                 result["reason"] = f"Length calculation failed: {e!s}"
         else:

@@ -2,20 +2,22 @@
 Service for handling file uploads and processing.
 """
 
-import os
-import uuid
-import shutil
-from sqlalchemy.orm import Session
-from fastapi import UploadFile, HTTPException
-from app.core.config import settings
-from app.models.uploaded_file import UploadedFile, ProcessingStatus
-from app.models.feature import Feature
-from app.services.parser import parse_file
-from app.services.crs import get_source_crs, get_projected_crs_for_geometry
-from app.services.measurement import calculate_measurements
 import json
+import os
+import shutil
+import uuid
+
 import numpy as np
 import pandas as pd
+from fastapi import UploadFile
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.models.feature import Feature
+from app.models.uploaded_file import ProcessingStatus, UploadedFile
+from app.services.crs import get_projected_crs_for_geometry, get_source_crs
+from app.services.measurement import calculate_measurements
+from app.services.parser import parse_file
 
 
 def save_upload_file(upload_file: UploadFile) -> tuple[str, str]:

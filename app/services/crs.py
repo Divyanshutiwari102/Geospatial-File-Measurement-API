@@ -2,10 +2,6 @@
 Service for handling Coordinate Reference Systems (CRS).
 """
 
-import math
-from typing import Optional, Tuple
-import pyproj
-from shapely.geometry import base, Point
 import geopandas as gpd
 
 
@@ -45,7 +41,7 @@ def get_source_crs(gdf: gpd.GeoDataFrame) -> str:
         return str(gdf.crs)
 
 
-def get_utm_zone(latitude: float, longitude: float) -> Tuple[int, bool]:
+def get_utm_zone(latitude: float, longitude: float) -> tuple[int, bool]:
     """
     Calculate the UTM zone and hemisphere for a given latitude and longitude.
 
@@ -67,7 +63,7 @@ def get_utm_zone(latitude: float, longitude: float) -> Tuple[int, bool]:
 
 def get_projected_crs_for_geometry(
     gdf: gpd.GeoDataFrame, per_feature: bool = False
-) -> Optional[str]:
+) -> str | None:
     """
     Determine a projected CRS suitable for area/length calculations.
 

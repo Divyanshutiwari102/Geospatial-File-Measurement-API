@@ -3,11 +3,10 @@ Service for parsing geospatial files (KML and zipped Shapefiles).
 """
 
 import os
-import zipfile
 import tempfile
-from typing import Tuple
+import zipfile
+
 import geopandas as gpd
-from shapely.geometry import base
 
 
 def parse_file(file_path: str, filename: str) -> gpd.GeoDataFrame:
@@ -42,7 +41,7 @@ def _parse_kml(file_path: str) -> gpd.GeoDataFrame:
             gdf = gdf.set_crs("EPSG:4326")
         return gdf
     except Exception as e:
-        raise ValueError(f"Invalid KML file: {str(e)}")
+        raise ValueError(f"Invalid KML file: {e!s}")
 
 
 def _parse_zip_shapefile(file_path: str) -> gpd.GeoDataFrame:

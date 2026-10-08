@@ -1,11 +1,15 @@
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine
+
 from app.api.routes.files import router as files_router
 from app.core.config import settings
 from app.db.session import Base
-import logging
-from sqlalchemy import create_engine
+from app.utils.exceptions import http_exception_handler, validation_exception_handler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,6 +43,11 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+
+    # Add exception handlers
+    app.add_exception_handler(Exception, http_exception_handler)
+    app.add_exception_handler(HTTPException, http_exception_handler)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
     # CORS middleware (adjust as needed for production)
     app.add_middleware(
