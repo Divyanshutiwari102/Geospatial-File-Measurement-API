@@ -1,15 +1,19 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from sqlalchemy import create_engine
 
 from app.api.routes.files import router as files_router
 from app.core.config import settings
 from app.db.session import Base
-from app.utils.exceptions import http_exception_handler, generic_exception_handler, validation_exception_handler
+from app.utils.exceptions import (
+    http_exception_handler,
+    validation_exception_handler,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -37,13 +41,16 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Geospatial File Measurement API",
-        description="API for uploading geospatial files and extracting measurements (area/length) from features.",
+        description=(
+            "API for uploading geospatial files and extracting measurements "
+            "(area/length) from features."
+        ),
         version="0.1.0",
         lifespan=lifespan,
     )
 
     # Add exception handlers
-    app.add_exception_handler(Exception, generic_exception_handler)
+    # app.add_exception_handler(Exception, generic_exception_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
@@ -62,6 +69,35 @@ def create_app() -> FastAPI:
     @app.get("/")
     async def root():
         return {"message": "Geospatial File Measurement API is running"}
+
+    # Middleware to ensure 404 responses include a code field
+    @app.middleware("http")
+    async def add_code_to_404(request: Request, call_next):
+        response = await call_next(request)
+        if response.status_code == 404:
+            try:
+                # Try to parse the response body as JSON
+                body = b""
+                async for chunk in response.body_iterator:
+                    body += chunk
+                # Replace the body iterator with the new body
+                import json
+
+                data = json.loads(body)
+                if isinstance(data, dict) and "detail" in data:
+                    data["code"] = "404"
+                    new_body = json.dumps(data).encode()
+                    # Return a new response with the modified body
+                    return Response(
+                        content=new_body,
+                        status_code=response.status_code,
+                        headers=dict(response.headers),
+                        media_type=response.media_type,
+                    )
+            except Exception:
+                # If anything goes wrong, return the original response
+                pass
+        return response
 
     return app
 

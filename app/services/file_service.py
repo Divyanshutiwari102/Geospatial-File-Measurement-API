@@ -92,8 +92,10 @@ def process_uploaded_file(
         if projected_crs is None:
             # Fallback: if we cannot determine a projected CRS, we cannot measure
             # We'll still save the file but mark as failed for measurement?
-            # According to requirements, we should return a clear error if CRS missing for Shapefile.
-            # For KML, we know it's EPSG:4326, so we should be able to get a projected CRS.
+            # According to requirements, we should return a clear error
+            # if CRS missing for Shapefile.
+            # For KML, we know it's EPSG:4326, so we should be able
+            # to get a projected CRS.
             # If we get here, something went wrong.
             raise ValueError("Could not determine a suitable projected CRS for measurement")
 
@@ -112,7 +114,8 @@ def process_uploaded_file(
             geom = row.geometry
 
             # Convert properties to JSON-serializable dict
-            # We'll drop the geometry column and convert the rest to dict, then handle non-serializable types
+            # We'll drop the geometry column and convert the rest to dict,
+            # then handle non-serializable types
             props = row.drop(labels="geometry").to_dict()
             # Convert numpy types, NaN, NaT, and other non-serializable types to None or string
             props_json_safe = {}

@@ -123,7 +123,8 @@ def sample_kml_content():
 def sample_shapefile():
     """
     Generate a simple shapefile in memory and return the zipped bytes.
-    The shapefile will be in EPSG:4326 and contain a polygon of approximately 1km x 1km near the equator.
+    The shapefile will be in EPSG:4326 and contain a polygon of approximately
+    1km x 1km near the equator.
     """
     # Create a square of 0.009 degrees by 0.009 degrees (approx 1km x 1km at the equator)
     poly = Polygon([(0, 0), (0, 0.009), (0.009, 0.009), (0.009, 0), (0, 0)])

@@ -109,8 +109,10 @@ def calculate_measurements(
                 result["measurement_type"] = "area"
                 result["value"] = area
                 result["unit"] = "square_meters"
-                # Also compute hectares and sq km for convenience (though we return only one unit per requirement)
-                # We'll stick to square_meters as per requirement, but note that we can add more later.
+                # Also compute hectares and sq km for convenience
+                # (though we return only one unit per requirement)
+                # We'll stick to square_meters as per requirement,
+                # but note that we can add more later.
             except Exception as e:
                 result["supported"] = False
                 result["reason"] = f"Area calculation failed: {e!s}"

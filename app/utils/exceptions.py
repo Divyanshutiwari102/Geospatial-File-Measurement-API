@@ -1,4 +1,5 @@
 from fastapi import HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -33,7 +34,6 @@ def generic_exception_handler(request: Request, exc: Exception):
 
 # Optional: Add handlers for other exceptions if needed
 # For example, we can handle RequestValidationError to format it similarly
-from fastapi.exceptions import RequestValidationError
 
 
 def validation_exception_handler(request: Request, exc: RequestValidationError):

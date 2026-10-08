@@ -4,7 +4,6 @@ import tempfile
 import zipfile
 
 import geopandas as gpd
-from shapely.geometry import Point
 
 
 def create_sample_kml():
@@ -70,20 +69,24 @@ def create_sample_shapefile():
     # Create two polygons
     from shapely.geometry import Polygon
 
-    polygon1 = Polygon([
-        (center_lon - half_size, center_lat - half_size),
-        (center_lon - half_size, center_lat + half_size),
-        (center_lon + half_size, center_lat + half_size),
-        (center_lon + half_size, center_lat - half_size),
-        (center_lon - half_size, center_lat - half_size)
-    ])
-    polygon2 = Polygon([
-        (center_lon - half_size + offset, center_lat - half_size + offset),
-        (center_lon - half_size + offset, center_lat + half_size + offset),
-        (center_lon + half_size + offset, center_lat + half_size + offset),
-        (center_lon + half_size + offset, center_lat - half_size + offset),
-        (center_lon - half_size + offset, center_lat - half_size + offset)
-    ])
+    polygon1 = Polygon(
+        [
+            (center_lon - half_size, center_lat - half_size),
+            (center_lon - half_size, center_lat + half_size),
+            (center_lon + half_size, center_lat + half_size),
+            (center_lon + half_size, center_lat - half_size),
+            (center_lon - half_size, center_lat - half_size),
+        ]
+    )
+    polygon2 = Polygon(
+        [
+            (center_lon - half_size + offset, center_lat - half_size + offset),
+            (center_lon - half_size + offset, center_lat + half_size + offset),
+            (center_lon + half_size + offset, center_lat + half_size + offset),
+            (center_lon + half_size + offset, center_lat - half_size + offset),
+            (center_lon - half_size + offset, center_lat - half_size + offset),
+        ]
+    )
 
     gdf = gpd.GeoDataFrame(
         {"id": [1, 2], "name": ["Polygon 1", "Polygon 2"]},

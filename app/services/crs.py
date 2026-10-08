@@ -2,11 +2,11 @@
 Service for handling Coordinate Reference Systems (CRS).
 """
 
-import geopandas as gpd
 import logging
 
-logger = logging.getLogger(__name__)
+import geopandas as gpd
 
+logger = logging.getLogger(__name__)
 
 
 def get_source_crs(gdf: gpd.GeoDataFrame) -> str:
@@ -73,7 +73,8 @@ def get_projected_crs_for_geometry(gdf: gpd.GeoDataFrame, per_feature: bool = Fa
 
     Args:
         gdf: GeoDataFrame with geometries.
-        per_feature: If True, return CRS per feature (not implemented here; we'll use per-file for simplicity).
+        per_feature: If True, return CRS per feature (not implemented here;
+                         we'll use per-file for simplicity).
                     For now, we compute a single CRS for the entire dataset.
 
     Returns:

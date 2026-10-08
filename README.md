@@ -13,7 +13,7 @@ A production-quality backend service for uploading geospatial files (Shapefile i
 
 ## Overview
 
-This service accepts a geospatial file (a .zip containing a Shapefile, or a .kml, or a .wkt), extracts every feature, calculates measurements (area for polygons, length for lines), and exposes the results through a REST API.
+This service accepts a geospatial file (a .zip containing a Shapefile, or a .kml), extracts every feature, calculates measurements (area for polygons, length for lines), and exposes the results through a REST API.
 
 Built with:
 - **FastAPI** for the web framework
@@ -191,51 +191,25 @@ curl -X 'POST' \
 
 **Step 1: Upload the KML file**
 ```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/files/' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@samples/sample.kml;type=application/vnd.google-earth.kml+xml'
+curl -X 'POST'   'http://localhost:8000/api/files/'   -H 'accept: application/json'   -H 'Content-Type: multipart/form-data'   -F 'file=@samples/sample.kml;type=application/vnd.google-earth.kml+xml'
 ```
 
 **Response:**
 ```json
 {
-  "id": "81ca67ee-6a1e-4db1-808c-da4ea058c645",
+  "id": "120fb5a5-f44f-4891-a08f-f3ae4a4bfafc",
   "filename": "sample.kml",
-  "feature_count": 1,
+  "feature_count": 3,
   "crs": "EPSG:4326",
   "status": "COMPLETED",
   "error_message": null,
-  "created_at": "2026-10-08T11:11:09"
+  "created_at": "2026-10-08T14:41:10"
 }
 ```
 
-**Step 2: Get file information**
+**Step 2: Get measurements (first two features, limit=2, offset=0)**
 ```bash
-curl -X 'GET' \
-  'http://localhost:8000/api/files/81ca67ee-6a1e-4db1-808c-da4ea058c645' \
-  -H 'accept: application/json'
-```
-
-**Response:**
-```json
-{
-  "id": "81ca67ee-6a1e-4db1-808c-da4ea058c645",
-  "filename": "sample.kml",
-  "feature_count": 1,
-  "crs": "EPSG:4326",
-  "status": "COMPLETED",
-  "error_message": null,
-  "created_at": "2026-10-08T11:11:09"
-}
-```
-
-**Step 3: Get measurements**
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/api/files/81ca67ee-6a1e-4db1-808c-da4ea058c645/measurements/' \
-  -H 'accept: application/json'
+curl -X 'GET'   'http://localhost:8000/api/files/120fb5a5-f44f-4891-a08f-f3ae4a4bfafc/measurements/?limit=2&offset=0'   -H 'accept: application/json'
 ```
 
 **Response:**
@@ -247,7 +221,7 @@ curl -X 'GET' \
       "geometry_type": "Point",
       "geometry": {
         "type": "Point",
-        "coordinates": [-122.0822035425683, 37.42228990140251, 0.0]
+        "coordinates": [-74.0445, 40.6892, 0.0]
       },
       "crs": "EPSG:4326",
       "properties": {
@@ -272,21 +246,57 @@ curl -X 'GET' \
         "projected_crs": null,
         "reason": "No measurement required for point features"
       }
+    },
+    {
+      "index": 1,
+      "geometry_type": "LineString",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.04899999999999, 40.6847, 0.0],
+          [-74.04, 40.6937, 0.0]
+        ]
+      },
+      "crs": "EPSG:4326",
+      "properties": {
+        "id": null,
+        "Name": "Sample LineString",
+        "description": null,
+        "timestamp": null,
+        "begin": null,
+        "end": null,
+        "altitudeMode": null,
+        "tessellate": -1,
+        "extrude": 0,
+        "visibility": -1,
+        "drawOrder": null,
+        "icon": null
+      },
+      "measurement": {
+        "supported": true,
+        "type": "length",
+        "value": 1255.632613365562,
+        "unit": "meters",
+        "projected_crs": "EPSG:32618",
+        "reason": null
+      }
     }
   ],
   "summary": {
-    "total_area": 0.0,
-    "total_area_ha": 0.0,
-    "total_area_sq_km": 0.0,
-    "total_length": 0.0,
-    "total_length_km": 0.0,
+    "total_area": 759843.4568865346,
+    "total_area_ha": 75.98434568865346,
+    "total_area_sq_km": 0.7598434568865345,
+    "total_length": 1255.632613365562,
+    "total_length_km": 1.255632613365562,
     "geometry_type_counts": {
-      "Point": 1
+      "LineString": 1,
+      "Point": 1,
+      "Polygon": 1
     }
   },
-  "limit": 100,
+  "limit": 2,
   "offset": 0,
-  "total": 1
+  "total": 3
 }
 ```
 
@@ -294,31 +304,25 @@ curl -X 'GET' \
 
 **Step 1: Upload the shapefile ZIP**
 ```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/files/' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@test_shapefile.zip;type=application/zip'
+curl -X 'POST'   'http://localhost:8000/api/files/'   -H 'accept: application/json'   -H 'Content-Type: multipart/form-data'   -F 'file=@samples/sample_shapefile.zip;type=application/zip'
 ```
 
 **Response:**
 ```json
 {
-  "id": "f337025f-215d-4736-98cf-bfdb9ac80776",
-  "filename": "test_shapefile.zip",
-  "feature_count": 1,
+  "id": "8d6eaf45-8770-4c3d-a4b1-784dd102d48e",
+  "filename": "sample_shapefile.zip",
+  "feature_count": 2,
   "crs": "EPSG:4326",
-  "status": "completed",
+  "status": "COMPLETED",
   "error_message": null,
-  "created_at": "2026-10-08T08:27:34"
+  "created_at": "2026-10-08T14:41:26"
 }
 ```
 
 **Step 2: Get measurements**
 ```bash
-curl -X 'GET' \
-  'http://localhost:8000/api/files/f337025f-215d-4736-98cf-bfdb9ac80776/measurements/' \
-  -H 'accept: application/json'
+curl -X 'GET'   'http://localhost:8000/api/files/8d6eaf45-8770-4c3d-a4b1-784dd102d48e/measurements/'   -H 'accept: application/json'
 ```
 
 **Response:**
@@ -330,41 +334,73 @@ curl -X 'GET' \
       "geometry_type": "Polygon",
       "geometry": {
         "type": "Polygon",
-        "coordinates": [[
-          [0.0, 0.0],
-          [0.0, 0.009],
-          [0.009, 0.009],
-          [0.009, 0.0],
-          [0.0, 0.0]
-        ]]
+        "coordinates": [
+          [
+            [-74.04899999999999, 40.6847],
+            [-74.04899999999999, 40.6937],
+            [-74.04, 40.6937],
+            [-74.04, 40.6847],
+            [-74.04899999999999, 40.6847]
+          ]
+        ]
       },
       "crs": "EPSG:4326",
       "properties": {
-        "id": 1
+        "id": 1,
+        "name": "Polygon 1"
       },
       "measurement": {
         "supported": true,
         "type": "area",
-        "value": 998983.8279138879,
+        "value": 759843.4568865346,
         "unit": "square_meters",
-        "projected_crs": "EPSG:32631",
+        "projected_crs": "EPSG:32618",
+        "reason": null
+      }
+    },
+    {
+      "index": 1,
+      "geometry_type": "Polygon",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-74.03999999999999, 40.6937],
+            [-74.03999999999999, 40.7027],
+            [-74.031, 40.7027],
+            [-74.031, 40.6937],
+            [-74.03999999999999, 40.6937]
+          ]
+        ]
+      },
+      "crs": "EPSG:4326",
+      "properties": {
+        "id": 2,
+        "name": "Polygon 2"
+      },
+      "measurement": {
+        "supported": true,
+        "type": "area",
+        "value": 759744.6831217841,
+        "unit": "square_meters",
+        "projected_crs": "EPSG:32618",
         "reason": null
       }
     }
   ],
   "summary": {
-    "total_area": 998983.8279138879,
-    "total_area_ha": 99.8983827913888,
-    "total_area_sq_km": 0.998983827913888,
+    "total_area": 1519588.1400083187,
+    "total_area_ha": 151.95881400083186,
+    "total_area_sq_km": 1.5195881400083187,
     "total_length": 0.0,
     "total_length_km": 0.0,
     "geometry_type_counts": {
-      "Polygon": 1
+      "Polygon": 2
     }
   },
   "limit": 100,
   "offset": 0,
-  "total": 1
+  "total": 2
 }
 ```
 
@@ -372,52 +408,44 @@ curl -X 'GET' \
 
 **Upload a file with invalid extension**
 ```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/files/' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@test.txt;type=text/plain'
+curl -X 'POST'   'http://localhost:8000/api/files/'   -H 'accept: application/json'   -H 'Content-Type: multipart/form-data'   -F 'file=@test.txt;type=text/plain'
 ```
 
 **Response:**
 ```json
 {
-  "detail": "Unsupported file extension: .txt. Only .zip, .kml, and .wkt are allowed."
-}
-```
-
-**Upload a file that exceeds the size limit**
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/files/' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@large.zip;type=application/zip'
-```
-
-**Response:**
-```json
-{
-  "detail": "File size exceeds the limit of 52428800 bytes"
+  "detail": "Only .zip and .kml are allowed.",
+  "code": "415"
 }
 ```
 
 **Get information for a non-existent file**
 ```bash
-curl -X 'GET' \
-  'http://localhost:8000/api/files/non-existent-id' \
-  -H 'accept: application/json'
+curl -X 'GET'   'http://localhost:8000/api/files/non-existent-id'   -H 'accept: application/json'
 ```
 
 **Response:**
 ```json
 {
-  "detail": "File with ID non-existent-id not found"
+  "detail": "File with ID non-existent-id not found",
+  "code": "404"
 }
 ```
 
-To verify the service, we ran the API locally and tested with the provided sample files. The outputs were consistent with the examples shown above.
+**Get measurements for a non-existent file**
+```bash
+curl -X 'GET'   'http://localhost:8000/api/files/non-existent-id/measurements/'   -H 'accept: application/json'
+```
 
+**Response:**
+```json
+{
+  "detail": "File is not ready for measurement. Current status: PROCESSING",
+  "code": "409"
+}
+```
+
+Note: The above error examples are illustrative. The actual detail messages may vary based on the specific error.
 ## Architecture
 
 ### Application Structure
@@ -480,7 +508,7 @@ Used SQLAlchemy with SQLite for development simplicity, but designed to be swapp
 Selected UTM as the default projected CRS for its widespread use and accuracy in mid-latitudes. Considered equal-area projections (like EPSG:6933) for area calculations but chose UTM for consistency between area and length measurements and simplicity of implementation.
 
 ### Geometry Storage
-Store geometries as WKT in the database for simplicity and compatibility. Alternative would be GeoJSON or PostGIS geometry types.
+Store geometries in a database-interchange format for simplicity and compatibility. Alternative would be GeoJSON or PostGIS geometry types.
 
 ### File Storage
 Store uploaded original files in the filesystem with UUID filenames to avoid collisions and security issues. Metadata and measurements are stored in the database.
