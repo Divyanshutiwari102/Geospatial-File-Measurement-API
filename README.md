@@ -13,7 +13,7 @@ A production-quality backend service for uploading geospatial files (Shapefile i
 
 ## Overview
 
-This service accepts a geospatial file (a .zip containing a Shapefile, or a .kml), extracts every feature, calculates measurements (area for polygons, length for lines), and exposes the results through a REST API.
+This service accepts a geospatial file (a .zip containing a Shapefile, or a .kml, or a .wkt), extracts every feature, calculates measurements (area for polygons, length for lines), and exposes the results through a REST API.
 
 Built with:
 - **FastAPI** for the web framework
@@ -382,7 +382,7 @@ curl -X 'POST' \
 **Response:**
 ```json
 {
-  "detail": "Unsupported file extension: .txt. Only .zip and .kml are allowed."
+  "detail": "Unsupported file extension: .txt. Only .zip, .kml, and .wkt are allowed."
 }
 ```
 

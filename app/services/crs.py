@@ -3,6 +3,10 @@ Service for handling Coordinate Reference Systems (CRS).
 """
 
 import geopandas as gpd
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 def get_source_crs(gdf: gpd.GeoDataFrame) -> str:
@@ -19,9 +23,7 @@ def get_source_crs(gdf: gpd.GeoDataFrame) -> str:
         ValueError: If the CRS cannot be determined.
     """
     if gdf.crs is None:
-        raise ValueError(
-            "Source CRS is missing (no .prj file for Shapefile or undefined CRS)"
-        )
+        raise ValueError("Source CRS is missing (no .prj file for Shapefile or undefined CRS)")
 
     # Try to convert to EPSG code
     try:
@@ -36,7 +38,7 @@ def get_source_crs(gdf: gpd.GeoDataFrame) -> str:
             else:
                 # Fallback to string representation
                 return str(gdf.crs)
-    except Exception:
+    except Exception:  # noqa: BLE001
         # Fallback to string representation
         return str(gdf.crs)
 
@@ -61,9 +63,7 @@ def get_utm_zone(latitude: float, longitude: float) -> tuple[int, bool]:
     return (zone_number, is_northern)
 
 
-def get_projected_crs_for_geometry(
-    gdf: gpd.GeoDataFrame, per_feature: bool = False
-) -> str | None:
+def get_projected_crs_for_geometry(gdf: gpd.GeoDataFrame, per_feature: bool = False) -> str | None:
     """
     Determine a projected CRS suitable for area/length calculations.
 
@@ -95,7 +95,8 @@ def get_projected_crs_for_geometry(
             units = gdf.crs.axis_info[0].unit_name
             if units.lower() == "metre":
                 return str(gdf.crs)
-    except Exception:
+    except Exception:  # noqa: BLE001
+        logger.warning("CRS check failed", exc_info=True)
         pass
 
     # If geographic (latitude/longitude), compute UTM zone from centroid

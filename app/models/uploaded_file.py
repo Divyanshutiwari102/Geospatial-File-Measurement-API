@@ -19,15 +19,9 @@ class UploadedFile(Base):
     filename = Column(String, nullable=False)
     feature_count = Column(Integer, nullable=True)
     crs = Column(String, nullable=True)  # EPSG code as string, e.g., "EPSG:4326"
-    status = Column(
-        Enum(ProcessingStatus), nullable=False, default=ProcessingStatus.PROCESSING
-    )
+    status = Column(Enum(ProcessingStatus), nullable=False, default=ProcessingStatus.PROCESSING)
     error_message = Column(Text, nullable=True)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationship to features
-    features = relationship(
-        "Feature", back_populates="uploaded_file", cascade="all, delete-orphan"
-    )
+    features = relationship("Feature", back_populates="uploaded_file", cascade="all, delete-orphan")

@@ -8,15 +8,46 @@ from shapely.geometry import Point
 
 
 def create_sample_kml():
-    kml_content = """<?xml version="1.0" encoding="UTF-8"?>
+    # Using coordinates near Statue of Liberty, New York
+    center_lon = -74.0445
+    center_lat = 40.6892
+    # 0.0045 degrees approx 0.5km (since 0.01 degrees ~ 1.1km)
+    half_size = 0.0045
+
+    kml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>Sample KML</name>
     <Placemark>
       <name>Sample Point</name>
       <Point>
-        <coordinates>-122.0822035425683,37.42228990140251,0</coordinates>
+        <coordinates>{center_lon},{center_lat},0</coordinates>
       </Point>
+    </Placemark>
+    <Placemark>
+      <name>Sample LineString</name>
+      <LineString>
+        <coordinates>
+          {center_lon - half_size},{center_lat - half_size},0
+          {center_lon + half_size},{center_lat + half_size},0
+        </coordinates>
+      </LineString>
+    </Placemark>
+    <Placemark>
+      <name>Sample Polygon</name>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              {center_lon - half_size},{center_lat - half_size},0
+              {center_lon - half_size},{center_lat + half_size},0
+              {center_lon + half_size},{center_lat + half_size},0
+              {center_lon + half_size},{center_lat - half_size},0
+              {center_lon - half_size},{center_lat - half_size},0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
     </Placemark>
   </Document>
 </kml>
@@ -28,10 +59,35 @@ def create_sample_kml():
 
 
 def create_sample_shapefile():
-    # Create a GeoDataFrame with one point
+    # Using coordinates near Statue of Liberty, New York
+    center_lon = -74.0445
+    center_lat = 40.6892
+    # 0.0045 degrees approx 0.5km (since 0.01 degrees ~ 1.1km)
+    half_size = 0.0045
+    # Offset for second polygon
+    offset = 0.009
+
+    # Create two polygons
+    from shapely.geometry import Polygon
+
+    polygon1 = Polygon([
+        (center_lon - half_size, center_lat - half_size),
+        (center_lon - half_size, center_lat + half_size),
+        (center_lon + half_size, center_lat + half_size),
+        (center_lon + half_size, center_lat - half_size),
+        (center_lon - half_size, center_lat - half_size)
+    ])
+    polygon2 = Polygon([
+        (center_lon - half_size + offset, center_lat - half_size + offset),
+        (center_lon - half_size + offset, center_lat + half_size + offset),
+        (center_lon + half_size + offset, center_lat + half_size + offset),
+        (center_lon + half_size + offset, center_lat - half_size + offset),
+        (center_lon - half_size + offset, center_lat - half_size + offset)
+    ])
+
     gdf = gpd.GeoDataFrame(
-        {"name": ["Sample Point"]},
-        geometry=[Point(-122.0822035425683, 37.42228990140251)],
+        {"id": [1, 2], "name": ["Polygon 1", "Polygon 2"]},
+        geometry=[polygon1, polygon2],
         crs="EPSG:4326",
     )
 

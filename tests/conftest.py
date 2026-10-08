@@ -28,9 +28,7 @@ def test_db(monkeypatch):
     from app.db.session import get_engine
 
     test_engine = get_engine()
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=test_engine
-    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
     # Create all tables
     Base.metadata.create_all(bind=test_engine)

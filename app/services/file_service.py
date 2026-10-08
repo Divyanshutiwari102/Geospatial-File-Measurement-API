@@ -85,7 +85,7 @@ def process_uploaded_file(
         try:
             source_crs_str = get_source_crs(gdf)
         except ValueError as e:
-            raise ValueError(f"CRS error: {e!s}")
+            raise ValueError(f"CRS error: {e!s}") from None
 
         # Step 3: Determine projected CRS for measurement
         projected_crs = get_projected_crs_for_geometry(gdf)
@@ -95,9 +95,7 @@ def process_uploaded_file(
             # According to requirements, we should return a clear error if CRS missing for Shapefile.
             # For KML, we know it's EPSG:4326, so we should be able to get a projected CRS.
             # If we get here, something went wrong.
-            raise ValueError(
-                "Could not determine a suitable projected CRS for measurement"
-            )
+            raise ValueError("Could not determine a suitable projected CRS for measurement")
 
         # Step 4: Calculate measurements
         measurements = calculate_measurements(gdf, projected_crs)

@@ -36,9 +36,7 @@ def calculate_measurements(
 
     # Create a transformer from the source CRS to the projected CRS
     source_crs = gdf.crs
-    project = pyproj.Transformer.from_crs(
-        source_crs, projected_crs, always_xy=True
-    ).transform
+    project = pyproj.Transformer.from_crs(source_crs, projected_crs, always_xy=True).transform
 
     for idx, row in gdf.iterrows():
         geom = row.geometry

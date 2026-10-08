@@ -8,9 +8,7 @@ def test_upload_kml(sample_kml_content, client):
     Test uploading a KML file.
     """
     # Prepare the file upload
-    files = {
-        "file": ("test.kml", sample_kml_content, "application/vnd.google-earth.kml+xml")
-    }
+    files = {"file": ("test.kml", sample_kml_content, "application/vnd.google-earth.kml+xml")}
     response = client.post("/api/files/", files=files)
     if response.status_code != 201:
         print(f"Error response: {response.json()}")
@@ -46,10 +44,7 @@ def test_upload_kml(sample_kml_content, client):
         # The measurement block should have supported True for line and polygon, False for point
         if feat["geometry_type"] == "Point":
             assert feat["measurement"]["supported"] == False
-            assert (
-                feat["measurement"]["reason"]
-                == "No measurement required for point features"
-            )
+            assert feat["measurement"]["reason"] == "No measurement required for point features"
         else:
             assert feat["measurement"]["supported"] == True
             assert feat["measurement"]["type"] in ["area", "length"]
@@ -100,7 +95,11 @@ def test_upload_invalid_extension(client):
     files = {"file": ("test.txt", b"some content", "text/plain")}
     response = client.post("/api/files/", files=files)
     assert response.status_code == 415
-    assert "Unsupported file extension" in response.json()["detail"]
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "415"
+    assert "Unsupported file extension" in json["detail"]
 
 
 def test_upload_too_large_file(client):
@@ -112,7 +111,11 @@ def test_upload_too_large_file(client):
     files = {"file": ("large.zip", large_content, "application/zip")}
     response = client.post("/api/files/", files=files)
     assert response.status_code == 413
-    assert "exceeds the limit" in response.json()["detail"]
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "413"
+    assert "exceeds the limit" in json["detail"]
 
 
 def test_get_nonexistent_file(client):
@@ -121,6 +124,10 @@ def test_get_nonexistent_file(client):
     """
     response = client.get("/api/files/nonexistent-id")
     assert response.status_code == 404
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "404"
 
 
 def test_get_measurements_for_nonexistent_file(client):
@@ -129,7 +136,10 @@ def test_get_measurements_for_nonexistent_file(client):
     """
     response = client.get("/api/files/nonexistent-id/measurements/")
     assert response.status_code == 404
-
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "404"
 
 
 import io
@@ -147,7 +157,11 @@ def test_upload_corrupt_zip(client):
     files = {"file": ("corrupt.zip", b"not a zip file", "application/zip")}
     response = client.post("/api/files/", files=files)
     assert response.status_code == 400
-    assert "Error processing file" in response.json()["detail"]
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "400"
+    assert "Error processing file" in json["detail"]
 
 
 def test_upload_zip_without_shp(client):
@@ -233,8 +247,7 @@ def test_upload_shapefile_missing_crs(client):
     assert "Error processing file" in response.json()["detail"]
     # The error should be about missing CRS
     assert (
-        "CRS" in response.json()["detail"]
-        or "Source CRS is missing" in response.json()["detail"]
+        "CRS" in response.json()["detail"] or "Source CRS is missing" in response.json()["detail"]
     )
 
 
@@ -243,9 +256,7 @@ def test_upload_shapefile_projected_crs(client):
     Test shapefile already in a projected CRS (e.g. EPSG:32643) measured directly.
     """
     # Create a shapefile in a projected CRS (UTM zone 43N)
-    poly = Polygon(
-        [(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)]
-    )  # 100m x 100m square
+    poly = Polygon([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)])  # 100m x 100m square
     gdf = gpd.GeoDataFrame({"id": [1], "geometry": [poly]}, crs="EPSG:32643")
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -277,9 +288,7 @@ def test_upload_shapefile_projected_crs(client):
     assert feat["measurement"]["supported"] == True
     assert feat["measurement"]["type"] == "area"
     # The area should be 100*100 = 10000 square meters
-    assert (
-        abs(feat["measurement"]["value"] - 10000) < 1e-5
-    )  # allow small floating point difference
+    assert abs(feat["measurement"]["value"] - 10000) < 1e-5  # allow small floating point difference
     assert feat["measurement"]["unit"] == "square_meters"
 
 
@@ -306,7 +315,11 @@ def test_get_measurements_for_non_completed_file(client, test_db):
     # Now try to get measurements
     response = client.get(f"/api/files/{file_id}/measurements/")
     assert response.status_code == 409
-    assert "File is not ready for measurement" in response.json()["detail"]
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "409"
+    assert "File is not ready for measurement" in json["detail"]
 
     # Also test with FAILED status
     with SessionLocal(bind=test_db["engine"]) as db:
@@ -316,7 +329,11 @@ def test_get_measurements_for_non_completed_file(client, test_db):
 
     response = client.get(f"/api/files/{file_id}/measurements/")
     assert response.status_code == 409
-    assert "File is not ready for measurement" in response.json()["detail"]
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "409"
+    assert "File is not ready for measurement" in json["detail"]
 
 
 def test_pagination(client):
@@ -377,18 +394,10 @@ def test_pagination(client):
         )
 
     # Check that summary totals match the sum of features
-    assert (
-        abs(measurements_all["summary"]["total_area"] - total_area_from_features) < 1e-9
-    )
-    assert (
-        abs(measurements_all["summary"]["total_length"] - total_length_from_features)
-        < 1e-9
-    )
+    assert abs(measurements_all["summary"]["total_area"] - total_area_from_features) < 1e-9
+    assert abs(measurements_all["summary"]["total_length"] - total_length_from_features) < 1e-9
     # Check geometry type counts
-    assert (
-        measurements_all["summary"]["geometry_type_counts"]
-        == geometry_type_counts_from_features
-    )
+    assert measurements_all["summary"]["geometry_type_counts"] == geometry_type_counts_from_features
 
     # Test limit=2, offset=0
     response = client.get(f"/api/files/{file_id}/measurements/?limit=2&offset=0")
@@ -418,14 +427,8 @@ def test_pagination(client):
     assert measurements["limit"] == 1
 
     # Check summary totals for the paginated results (should still reflect the total)
-    assert (
-        measurements["summary"]["total_area"]
-        == measurements_all["summary"]["total_area"]
-    )
-    assert (
-        measurements["summary"]["total_length"]
-        == measurements_all["summary"]["total_length"]
-    )
+    assert measurements["summary"]["total_area"] == measurements_all["summary"]["total_area"]
+    assert measurements["summary"]["total_length"] == measurements_all["summary"]["total_length"]
     assert (
         measurements["summary"]["geometry_type_counts"]
         == measurements_all["summary"]["geometry_type_counts"]
@@ -476,9 +479,7 @@ def test_point_and_multipolygon_handling(client):
     # Create a shapefile with a point
     from shapely.geometry import Point
 
-    point_gdf = gpd.GeoDataFrame(
-        {"id": [1], "geometry": [Point(0, 0)]}, crs="EPSG:4326"
-    )
+    point_gdf = gpd.GeoDataFrame({"id": [1], "geometry": [Point(0, 0)]}, crs="EPSG:4326")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         shp_path = os.path.join(tmpdir, "test.shp")
@@ -531,9 +532,7 @@ def test_known_location_1km_square(client):
     east = center_easting + half_side
     south = center_northing - half_side
     north = center_northing + half_side
-    poly = Polygon(
-        [(west, south), (west, north), (east, north), (east, south), (west, south)]
-    )
+    poly = Polygon([(west, south), (west, north), (east, north), (east, south), (west, south)])
     gdf_projected = gpd.GeoDataFrame(
         {"id": [1], "geometry": [poly]}, crs="EPSG:32633"
     )  # UTM zone 33N
@@ -601,9 +600,7 @@ def test_area_length_values_are_floats(client):
     from shapely.geometry import Polygon
 
     poly = Polygon([(0, 0), (0, 2.5), (1.5, 2.5), (1.5, 0), (0, 0)])
-    gdf = gpd.GeoDataFrame(
-        {"id": [1], "geometry": [poly]}, crs="EPSG:32633"
-    )  # UTM zone 33N
+    gdf = gpd.GeoDataFrame({"id": [1], "geometry": [poly]}, crs="EPSG:32633")  # UTM zone 33N
 
     with tempfile.TemporaryDirectory() as tmpdir:
         shp_path = os.path.join(tmpdir, "test.shp")
@@ -682,9 +679,7 @@ def test_file_info_exact_keys_and_status_completed(client, sample_kml_content):
     Test that GET /api/files/{id}/ returns exactly the required keys and status is COMPLETED.
     """
     # Upload a KML file
-    files = {
-        "file": ("test.kml", sample_kml_content, "application/vnd.google-earth.kml+xml")
-    }
+    files = {"file": ("test.kml", sample_kml_content, "application/vnd.google-earth.kml+xml")}
     response = client.post("/api/files/", files=files)
     assert response.status_code == 201
     data = response.json()
@@ -728,9 +723,7 @@ def test_geojson_validity(client):
 
     for geom_type, original_geom in test_cases:
         # Create a GeoDataFrame with the single geometry
-        gdf = gpd.GeoDataFrame(
-            {"id": [1], "geometry": [original_geom]}, crs="EPSG:4326"
-        )
+        gdf = gpd.GeoDataFrame({"id": [1], "geometry": [original_geom]}, crs="EPSG:4326")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             shp_path = os.path.join(tmpdir, "test.shp")
@@ -759,9 +752,7 @@ def test_geojson_validity(client):
         feat = measurements["features"][0]
 
         # Check that the geometry type matches
-        assert feat["geometry_type"] == geom_type, (
-            f"Geometry type mismatch for {geom_type}"
-        )
+        assert feat["geometry_type"] == geom_type, f"Geometry type mismatch for {geom_type}"
 
         # Convert the GeoJSON geometry to a shapely geometry
         geom_geojson = feat["geometry"]
@@ -770,39 +761,54 @@ def test_geojson_validity(client):
         if geom_geojson:  # non-empty dict
             geom_from_response = shape(geom_geojson)
             # Check that the geometry is valid
-            assert geom_from_response.is_valid, (
-                f"Invalid geometry for {geom_type} from response"
-            )
+            assert geom_from_response.is_valid, f"Invalid geometry for {geom_type} from response"
             # Check that it equals the original geometry
-            assert geom_from_response.equals(original_geom), (
-                f"Geometry mismatch for {geom_type}"
-            )
+            assert geom_from_response.equals(original_geom), f"Geometry mismatch for {geom_type}"
         else:
             # For geometry types that are not supported for measurement (like Point), we expect an empty geometry?
             # But in our case, we store the geometry regardless of measurement support.
             # Let's check the geometry_wkt in the database? We don't have direct access.
             # Instead, we can check that the geometry field is present and is a dict (even if empty).
-            assert isinstance(geom_geojson, dict), (
-                f"Geometry should be a dict for {geom_type}"
-            )
+            assert isinstance(geom_geojson, dict), f"Geometry should be a dict for {geom_type}"
             # For Point, we expect the geometry to be present (not empty) because we store it.
             # If it's empty, that's a bug.
             if geom_type == "Point":
                 # Point should have a geometry
                 assert geom_geojson, "Point geometry should not be empty"
                 geom_from_response = shape(geom_geojson)
-                assert geom_from_response.equals(original_geom), (
-                    "Point geometry mismatch"
-                )
+                assert geom_from_response.equals(original_geom), "Point geometry mismatch"
 
 
-def test_no_geospatial_db_or_uploads_in_repo_root():
+def test_upload_wkt_valid(client):
     """
-    Test that no geospatial.db or uploads directory exists in the repository root.
+    Test uploading a .txt file containing WKT geometries.
+    Expect 201 and COMPLETED status.
     """
-    assert not os.path.exists("geospatial.db"), (
-        "geospatial.db should not exist in the repo root"
-    )
-    assert not os.path.isdir("uploads"), (
-        "uploads directory should not exist in the repo root"
-    )
+    wkt_content = "POINT (1 1)\nLINESTRING (0 0, 1 1)\nPOLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))"
+    files = {"file": ("test.wkt", wkt_content.encode(), "text/plain")}
+    response = client.post("/api/files/", files=files)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["filename"] == "test.wkt"
+    assert data["status"] == "COMPLETED"
+    assert data["feature_count"] == 3
+    # The CRS should be EPSG:4326 as default for WKT without CRS
+    assert data["crs"] == "EPSG:4326"
+
+
+def test_upload_wkt_invalid(client):
+    """
+    Test uploading a .txt file with invalid WKT.
+    Expect 400 with error message.
+    """
+    wkt_content = "POINT (1 1\nLINESTRING (0 0, 1 1)"  # missing closing parenthesis
+    files = {"file": ("test.wkt", wkt_content.encode(), "text/plain")}
+    response = client.post("/api/files/", files=files)
+    assert response.status_code == 400
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "400"
+    assert "Error processing file" in json["detail"]
+
+

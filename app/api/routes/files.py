@@ -19,9 +19,7 @@ from app.services.file_service import process_uploaded_file, save_upload_file
 router = APIRouter()
 
 
-@router.post(
-    "/", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_file(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -37,10 +35,10 @@ async def upload_file(
             detail="No filename provided",
         )
     _, ext = os.path.splitext(filename.lower())
-    if ext not in [".zip", ".kml"]:
+    if ext not in [".zip", ".kml", ".wkt"]:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported file extension: {ext}. Only .zip and .kml are allowed.",
+            detail=f"Unsupported file extension: {ext}. Only .zip, .kml, and .wkt are allowed.",
         )
 
     # Validate file size (we'll read the file to check size, but we can also rely on the server's limit)
@@ -63,7 +61,7 @@ async def upload_file(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to save uploaded file: {e!s}",
-        )
+        ) from None
 
     # Process the file (this will save to database and return the UploadedFile object)
     try:
@@ -81,7 +79,7 @@ async def upload_file(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Error processing file: {e!s}",
-        )
+        ) from None
 
     # Return the file info
     return FileUploadResponse(
@@ -96,6 +94,7 @@ async def upload_file(
 
 
 @router.get("/{file_id}", response_model=FileInfo)
+@router.get("/{file_id}/", response_model=FileInfo, include_in_schema=False)
 def get_file_info(
     file_id: str,
     db: Session = Depends(get_db),
@@ -120,6 +119,7 @@ def get_file_info(
     )
 
 
+@router.get("/{file_id}/measurements", response_model=MeasurementResponse, include_in_schema=False)
 @router.get("/{file_id}/measurements/", response_model=MeasurementResponse)
 def get_file_measurements(
     file_id: str,
@@ -156,7 +156,7 @@ def get_file_measurements(
         .filter(
             Feature.uploaded_file_id == file_id,
             Feature.measurement_type == "area",
-            Feature.measurement_supported == True,
+            Feature.measurement_supported,
         )
         .scalar()
         or 0.0
@@ -167,7 +167,7 @@ def get_file_measurements(
         .filter(
             Feature.uploaded_file_id == file_id,
             Feature.measurement_type == "length",
-            Feature.measurement_supported == True,
+            Feature.measurement_supported,
         )
         .scalar()
         or 0.0
@@ -183,10 +183,7 @@ def get_file_measurements(
 
     # Query features with pagination
     features_query = (
-        db.query(Feature)
-        .filter(Feature.uploaded_file_id == file_id)
-        .offset(offset)
-        .limit(limit)
+        db.query(Feature).filter(Feature.uploaded_file_id == file_id).offset(offset).limit(limit)
     )
     features = features_query.all()
 

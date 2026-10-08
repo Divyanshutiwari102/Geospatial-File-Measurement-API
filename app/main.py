@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from app.api.routes.files import router as files_router
 from app.core.config import settings
 from app.db.session import Base
-from app.utils.exceptions import http_exception_handler, validation_exception_handler
+from app.utils.exceptions import http_exception_handler, generic_exception_handler, validation_exception_handler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,9 +23,7 @@ async def lifespan(app: FastAPI):
     # Create a temporary engine for table creation
     temp_engine = create_engine(
         settings.database_url,
-        connect_args={"check_same_thread": False}
-        if "sqlite" in settings.database_url
-        else {},
+        connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {},
     )
     Base.metadata.create_all(bind=temp_engine)
     logger.info("Database tables created.")
@@ -45,7 +43,7 @@ def create_app() -> FastAPI:
     )
 
     # Add exception handlers
-    app.add_exception_handler(Exception, http_exception_handler)
+    app.add_exception_handler(Exception, generic_exception_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
 

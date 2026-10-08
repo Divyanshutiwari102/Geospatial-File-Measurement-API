@@ -5,8 +5,33 @@
     <Placemark>
       <name>Sample Point</name>
       <Point>
-        <coordinates>-122.0822035425683,37.42228990140251,0</coordinates>
+        <coordinates>-74.0445,40.6892,0</coordinates>
       </Point>
+    </Placemark>
+    <Placemark>
+      <name>Sample LineString</name>
+      <LineString>
+        <coordinates>
+          -74.04899999999999,40.6847,0
+          -74.04,40.6937,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+    <Placemark>
+      <name>Sample Polygon</name>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -74.04899999999999,40.6847,0
+              -74.04899999999999,40.6937,0
+              -74.04,40.6937,0
+              -74.04,40.6847,0
+              -74.04899999999999,40.6847,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
     </Placemark>
   </Document>
 </kml>

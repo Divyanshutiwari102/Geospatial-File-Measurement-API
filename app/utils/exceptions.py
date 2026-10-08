@@ -18,6 +18,19 @@ def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
+def generic_exception_handler(request: Request, exc: Exception):
+    """
+    Handle unexpected exceptions to return a 500 error with code INTERNAL_ERROR.
+    """
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "code": "INTERNAL_ERROR",
+        },
+    )
+
+
 # Optional: Add handlers for other exceptions if needed
 # For example, we can handle RequestValidationError to format it similarly
 from fastapi.exceptions import RequestValidationError
