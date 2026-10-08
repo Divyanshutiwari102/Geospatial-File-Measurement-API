@@ -35,13 +35,14 @@ async def upload_file(
             detail="No filename provided",
         )
     _, ext = os.path.splitext(filename.lower())
-    if ext not in [".zip", ".kml", ".wkt"]:
+    if ext not in [".zip", ".kml"]:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported file extension: {ext}. Only .zip, .kml, and .wkt are allowed.",
+            detail="Only .zip and .kml are allowed.",
         )
 
-    # Validate file size (we'll read the file to check size, but we can also rely on the server's limit)
+    # Validate file size (we'll read the file to check size,
+    # but we can also rely on the server's limit)
     # We'll read the file content into memory to check size, but for large files we should stream.
     # Since we have a size limit, we'll read the file up to the limit.
     contents = await file.read()
