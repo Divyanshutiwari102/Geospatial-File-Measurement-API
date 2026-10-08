@@ -824,3 +824,27 @@ def test_get_nonexistent_endpoint(client):
     assert "detail" in json
     assert "code" in json
     assert json["code"] == "404"
+
+
+def test_upload_no_file(client):
+    """
+    Test uploading with no file -> 422, asserting detail + code.
+    """
+    response = client.post("/api/files/")
+    assert response.status_code == 422
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "422"
+
+
+def test_get_nonexistent_endpoint(client):
+    """
+    GET /api/nope -> 404, asserting detail + code.
+    """
+    response = client.get("/api/nope")
+    assert response.status_code == 404
+    json = response.json()
+    assert "detail" in json
+    assert "code" in json
+    assert json["code"] == "404"
